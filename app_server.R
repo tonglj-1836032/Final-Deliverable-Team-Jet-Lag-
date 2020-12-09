@@ -1,6 +1,155 @@
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+require(maps)
+require(viridis)
+library(openintro)
+library(shiny)
+library(plotly)
+
+data_path <- file.path(
+   getwd(),
+   "data",
+   "COVID-19_Case_Surveillance_Public_Use_Data.csv"
+)
+
+COVID <- read.csv(data_path)
+data_raw <- read.csv(data_path)
+
+basic <- COVID %>%
+   select(current_status, age_group, sex)
+
+confirmed_case <- basic %>%
+   filter(current_status == "Laboratory-confirmed case") %>%
+   filter(sex != "Missing") %>%
+   filter(sex != "NA") %>%
+   filter(sex != "Unknown") %>%
+   filter(age_group != "Unknown") %>%
+   filter(age_group != "NA")
+
+all_cases <- confirmed_case %>%
+   group_by(age_group, sex) %>%
+   summarise(cases = n())
+
+which_gender <- function(gender) {
+   confirmed_case %>%
+      group_by(age_group, sex) %>%
+      filter(sex == gender) %>%
+      summarise(cases = n())
+}
+
+age_case_p1 <- "Since so many people have been unfortunately confirmed to be the 
+              carrier of COVID-19, the public went into panic at the beginning 
+              of this chaos. Numerous people are still wondering what the age 
+              group of people COVID-19 normally targets at, thus we hope to 
+              generate a chart to display the statistical information about the 
+              confirmed-cases age group, informing the public an potential 
+              correlation between age and the possibility of getting COVID-19."
+
+age_case_p2 <- "Based on this chart, we can easily observe that most of COVID-19 
+              cases are confirmed at the age group between 40 - 49 Years, which 
+              takes up about 23% of the total confirmed population. From this 
+              chart, we can see that the majority of confirmed cases are founded 
+              in the age group above 30 years old, which might indicate that 
+              there is a positive correlation between the possibility of getting 
+              COVID-19 and the age of individuals."
+
 server <- function(input, output) {
+  #filtering missing value 
+  data <- data_raw %>% 
+    filter(hosp_yn != "Unknown") %>%
+    filter(hosp_yn != "Missing") %>%
+    select(sex,age_group,Race.and.ethnicity..combined., hosp_yn) %>% 
+    filter(Race.and.ethnicity..combined. != "Unknown")
+   
+  #organizing data & relavant calculation for GENDER
+  race_list <- as.list(
+    data %>% 
+      select(Race.and.ethnicity..combined.) %>% 
+      unique()
+  )
+    
+ race_sex_y <- data %>% 
+   group_by(Race.and.ethnicity..combined.,sex) %>% 
+   filter(hosp_yn == "Yes") %>%
+   summarize(sex_sum_y = n())
+ 
+ race_sex_sum <- data %>% 
+   group_by(Race.and.ethnicity..combined.,sex) %>% 
+   summarize(sex_sum = n())
+ 
+ data_race_sex <- left_join(race_sex_y, race_sex_sum,
+                            by = c("Race.and.ethnicity..combined.","sex")
+                            ) %>%
+   mutate(y_rate = (sex_sum_y / sex_sum)*100) %>% 
+   select(Race.and.ethnicity..combined.,sex,y_rate) %>% 
+   filter(sex != "Missing" & sex != "Unknown")
+
+ #organizing data & relavant calculation for AGE
+ race_age_y <- data %>% 
+   group_by(Race.and.ethnicity..combined.,age_group) %>% 
+   filter(hosp_yn == "Yes") %>%
+   summarize(age_sum_y = n())
+ 
+ race_age_sum <- data %>% 
+   group_by(Race.and.ethnicity..combined.,age_group) %>% 
+   summarize(age_sum = n())
+ 
+ data_race_age <- left_join(race_age_y, race_age_sum,
+                            by = c("Race.and.ethnicity..combined.","age_group")
+ ) %>%
+   mutate(y_rate = (age_sum_y / age_sum)*100) %>% 
+   select(Race.and.ethnicity..combined.,age_group,y_rate) %>% 
+   filter(age_group != "Unknown") %>% 
+   na.omit()
   
-  output$line<-renderPlotly(
+ #Interactive
+ reactive_data <- reactive({
+   if(input$x == "sex"){plot_data <- data_race_sex}
+   if(input$x == "age_group"){plot_data <- data_race_age}
+   plot_data <- filter(plot_data, Race.and.ethnicity..combined. == input$race)
+   return(plot_data)
+ })
+ 
+ # wrapper for cleaning up labels
+ wrapper <- reactive({
+   if(input$x == "sex"){return("Sex")}
+   if(input$x == "age_group"){return("Age Groups")}
+ })
+ 
+ #plot
+ output$plot <- renderPlotly({
+   plot <- ggplot(reactive_data(),
+                  aes(x = get(input$x), y = y_rate)) +
+     geom_col(fill = "#7B90D2") +
+     coord_flip() +
+     labs(
+       title =  paste("Hospital Accecptance Rate for",
+                      input$race,"People by",wrapper()),
+       x = wrapper(),
+       y = "Hospital Accecptance Rate (%)"
+     ) +
+     scale_fill_discrete(name = wrapper())
+   ggplotly(plot)
+ })
+   
+    # The bar graph for confirmed cases and age group
+    output$bar <- renderPlotly({
+       plot1 <- ggplot(data = which_gender(input$gender_input)) +
+          geom_bar(
+             mapping = aes(fill = age_group, y = cases, x = input$gender_input),
+             position = "fill", stat = "identity"
+          ) +
+          labs(
+             x = "Gender", y = "Confirmed Cases Percetage",
+             title = "Percentage of Confirmed Cases by Age Group and Gender"
+          ) +
+          scale_fill_brewer(palette = input$color_input)
+       ggplotly(plot1)
+    })
+    output$age_case_p1 <- renderText(age_case_p1)
+    output$age_case_p2 <- renderText(age_case_p2)  
+	output$line<-renderPlotly(
     plot_ly(1,2)
     
   )
@@ -10,11 +159,7 @@ is relatively lower than another serious pandemic. But what kind of group has a 
 there any connection between gender and mortality rates or age and mortality rates? Thus, we would like to
 use this graph to find out how gender influences the mortality rates of people in each age group.
 ")
-
-  
-  COVID <- read.csv("data/COVID-19_Case_Surveillance_Public_Use_Data.csv")
   feature=colnames(COVID)
-  
   covid_death <- COVID %>%
     filter(death_yn != "Unknown" & death_yn != "Missing")
   
@@ -89,4 +234,5 @@ that the mortality rates are nearly 0% for people from 0-29 years old. However, 
 increasedas age increased. And ",text)
     }
   )
-}
+ 
+ }
