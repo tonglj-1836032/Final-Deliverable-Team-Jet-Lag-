@@ -1,0 +1,22 @@
+h1 {
+  font-weight: 500;
+  line-height: 1.1;
+  color:#FF31FF;
+  font-size:24px;
+
+  text-align:justify;
+}
+
+h2 {
+  font-weight: 500;
+  line-height: 1.1;
+  color:#FFF;
+  font-size:18px;
+
+  text-align:justify;
+}
+
+body {
+  background-color:#CCC;
+  padding:0
+}
