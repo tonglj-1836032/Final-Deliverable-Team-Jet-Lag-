@@ -234,5 +234,38 @@ that the mortality rates are nearly 0% for people from 0-29 years old. However, 
 increasedas age increased. And ",text)
     }
   )
+  
+  # Renames columns.
+  colnames(COVID)[1] <- "cdc_report_date"
+  colnames(COVID)[7] <- "race_ethnicity_combined"
+  colnames(COVID)[8] <- "hospitalized"
+  colnames(COVID)[10] <- "death"
+  
+  # Selects relevant columns.
+  relevant_dataset <- COVID %>%
+    select(
+      cdc_report_date, 
+      current_status, 
+      sex, 
+      age_group, 
+      race_ethnicity_combined, 
+      hospitalized, 
+      death
+    )
+  
+  # Sorts dataset in the order of date.
+  relevant_dataset <- arrange(relevant_dataset, cdc_report_date)
+  
+  # Slices dataset.
+  sliced_dataset <- relevant_dataset %>%
+    slice(1:10)
+  
+  # Calculates current status summary information.
+  current_status_summary <- relevant_dataset %>%
+    group_by(current_status) %>%
+    summarize(num_current_status = n())
+  
+  output$dataset <- renderTable(sliced_dataset)
+  output$summary <- renderTable(current_status_summary)
  
  }

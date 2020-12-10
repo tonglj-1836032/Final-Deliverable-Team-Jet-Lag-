@@ -107,11 +107,90 @@ tt2<-tabPanel("desc",
              
 )
 
+# Introductory page.
+intro_page <- tabPanel(
+  "Introduction", # navbar tab label.
+  
+  titlePanel("Introduction"),
+  
+  # Topic paragraphs.
+  p("Coronavirus is a hot topic this year, people around the world are 
+  hugely affected by it. As international students, we are facing many 
+  difficulties due to coronavirus. It affected our lives in so many ways. 
+  And we believed that others have been through the same thing like us."
+  ),
+  
+  p("Thus, we decided to engage in this field and create a website that could help 
+    people in this complex situation. We hope that our design could help people 
+    gain insights and reduce their stress, informing the public of the effect of
+    COVID-19 on education, transportation, and work. We also want to go further 
+    by adding information about where you could get a covid test and which 
+    hospital you could go to for help."
+    ),
+  
+  p(
+    "The original data was downloaded from ",
+    a("U.S. Government's open data. ",
+      href = "https://catalog.data.gov/dataset/
+      covid-19-case-surveillance-public-use-data"
+    ),
+    "The dataframe's column names (cdc_report_dt, 
+      Race and ethnicity (combined), hosp_yn, death_yn) 
+      has been modified to be more human readable. 
+      The dataframe was filtered to remove columns that were not used 
+      (pos_spec_dt, onset_dt, icu_yn, medcond_yn).
+      The dataframe was sorted in the ascending order of date.
+      The dataframe was sliced to show first 10 rows.
+      The table was included to show used dataset.
+      The table reveals information such as column names that helps understand 
+      the dataset better."
+  ),
+  
+  tableOutput('dataset'),
+)
+
+# Summary takeaways page.
+summary_page <- tabPanel(
+  "Summary Takeaways", # navbar tab label.
+  
+  titlePanel("Summary Takeaways"),
+  
+  # Summary paragraphs.
+  p("After looking at the data closely and generating aggregate summary of it, 
+    we realized how much impact COVID-19 had made to our society. 
+    So many people from different ages groups and races are heavily affected by 
+    it. For example, hospital treatment among all race and ethnicity is 15%, 
+    which is rather low. This may be a sign indicating how compacted hospitals 
+    are and the inability of hospitals for taking in all patients in need. 
+    Among all race and ethnicity groups, black and non-hispanic people have a 
+    hospital treatment rate of 22%, which is the highest among all race and 
+    ethnicity groups."
+  ),
+  
+  p("As for the age factors, most of COVID-19 cases are confirmed at the age 
+    group between 20 - 29 Years, which takes up about 20% of the total confirmed 
+    population. On the other hand, the age group 0 - 9 Years has the smallest 
+    percentage of confirmed cases that takes up only about 3%. Thus, we should 
+    rise the alter to be aware of the harsh situation and do everything possible 
+    to protect ourselves form getting infected, avoiding risky behaviors during 
+    this sensitive period of time."
+  ),
+  
+  p(
+    "The dataframe was grouped and summarized by current status.
+    The table was included to show differences between laboratory 
+    confirmed/probable cases.
+    The table reveals number of laboratory confirmed/probable cases."
+  ),
+  
+  tableOutput('summary')
+)
 
 
 
 ui <- fluidPage(
   tabsetPanel(
+    intro_page,
     tabPanel(
       "CO2 Emission Plot",
       sidebarLayout(
@@ -138,6 +217,7 @@ ui <- fluidPage(
 	  tt1,
 	  tt2
     
-  )
+  ),
+  summary_page
   )
 )
