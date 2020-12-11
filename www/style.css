@@ -1,8 +1,8 @@
 h1 {
   font-weight: 500;
   line-height: 1.1;
-  color:#FF31FF;
-  font-size:24px;
+  color: #FF31FF;
+  font-size: 24px;
 
   text-align:justify;
 }
@@ -10,13 +10,13 @@ h1 {
 h2 {
   font-weight: 500;
   line-height: 1.1;
-  color:#FFF;
-  font-size:18px;
+  color: #FFF;
+  font-size: 18px;
 
-  text-align:justify;
+  text-align: justify;
 }
 
 body {
-  background-color:#CCC;
-  padding:0
+  background-color: #CCC;
+  padding: 0;
 }

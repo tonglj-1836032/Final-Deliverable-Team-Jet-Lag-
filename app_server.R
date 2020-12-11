@@ -14,6 +14,7 @@ data_path <- file.path(
 )
 
 COVID <- read.csv(data_path)
+COVID2 <- read.csv(data_path)
 data_raw <- read.csv(data_path)
 
 basic <- COVID %>%
@@ -53,6 +54,36 @@ age_case_p2 <- "Based on this chart, we can easily observe that most of COVID-19
               in the age group above 30 years old, which might indicate that 
               there is a positive correlation between the possibility of getting 
               COVID-19 and the age of individuals."
+
+# Renames columns.
+colnames(COVID2)[1] <- "cdc_report_date"
+colnames(COVID2)[7] <- "race_ethnicity_combined"
+colnames(COVID2)[8] <- "hospitalized"
+colnames(COVID2)[10] <- "death"
+
+# Selects relevant columns.
+relevant_dataset <- COVID2 %>%
+  select(
+    cdc_report_date, 
+    current_status, 
+    sex, 
+    age_group, 
+    race_ethnicity_combined, 
+    hospitalized, 
+    death
+  )
+
+# Sorts dataset in the order of date.
+relevant_dataset <- arrange(relevant_dataset, cdc_report_date)
+
+# Slices dataset.
+sliced_dataset <- relevant_dataset %>%
+  slice(1:10)
+
+# Calculates current status summary information.
+current_status_summary <- relevant_dataset %>%
+  group_by(current_status) %>%
+  summarize(num_current_status = n())
 
 server <- function(input, output) {
   #filtering missing value 
@@ -142,11 +173,21 @@ server <- function(input, output) {
           ) +
           labs(
              x = "Gender", y = "Confirmed Cases Percetage",
-             title = "Percentage of Confirmed Cases by Age Group and Gender"
+             title = "Percentage of Confirmed Cases by Age Group"
           ) +
           scale_fill_brewer(palette = input$color_input)
        ggplotly(plot1)
     })
+    output$race_list<- renderUI(
+      {
+        selectInput(
+          inputId = "race",
+          label = h3("Select a race and ethnicity group"),
+          choices =race_list,
+          selected = "Black, Non-Hispanic"
+        )
+      }
+    )
     output$age_case_p1 <- renderText(age_case_p1)
     output$age_case_p2 <- renderText(age_case_p2)  
 	output$line<-renderPlotly(
@@ -220,10 +261,26 @@ the rate in every age group. ")
       ssa=which(res$Death_yn>0)
       res=res[ssa,]
     }
-  plot_line<-ggplot(data = res, aes(x = Age_group, y = Death_yn, group=Sex,color =Sex))+scale_x_discrete(guide = guide_axis(check.overlap = TRUE)) + geom_line()+ ggtitle("COVID-19 cases mortality rates for every sex in each age group.") +
+    type=as.character(input$line_type)
+    if(type=="All"){
+      res=res
+      
+    }
+    if(type=="Male"){
+      ssa=which(res$Sex=="Male")
+      res=res[ssa,]
+      
+    }
+    if(type=="Female"){
+      ssa=which(res$Sex=="Female")
+      res=res[ssa,]
+      
+    }
+  plot_line<-ggplot(data = res, aes(x = Age_group, y = Death_yn, group=Sex,color =Sex))+coord_flip()+scale_x_discrete(guide = guide_axis(check.overlap = TRUE)) + geom_line()+ ggtitle("COVID-19 cases mortality rates for every sex in each age group.") +
     labs(
       y = "Mortality rates (%)", x = " Age group"
     )
+  
   ggplotly(plot_line)
   })
   
@@ -235,37 +292,16 @@ increasedas age increased. And ",text)
     }
   )
   
-  # Renames columns.
-  colnames(COVID)[1] <- "cdc_report_date"
-  colnames(COVID)[7] <- "race_ethnicity_combined"
-  colnames(COVID)[8] <- "hospitalized"
-  colnames(COVID)[10] <- "death"
+  output$dataset <- renderTable(
+    {
+      sliced_dataset
+    }
+  )
   
-  # Selects relevant columns.
-  relevant_dataset <- COVID %>%
-    select(
-      cdc_report_date, 
-      current_status, 
-      sex, 
-      age_group, 
-      race_ethnicity_combined, 
-      hospitalized, 
-      death
-    )
-  
-  # Sorts dataset in the order of date.
-  relevant_dataset <- arrange(relevant_dataset, cdc_report_date)
-  
-  # Slices dataset.
-  sliced_dataset <- relevant_dataset %>%
-    slice(1:10)
-  
-  # Calculates current status summary information.
-  current_status_summary <- relevant_dataset %>%
-    group_by(current_status) %>%
-    summarize(num_current_status = n())
-  
-  output$dataset <- renderTable(sliced_dataset)
-  output$summary <- renderTable(current_status_summary)
+  output$summary <- renderTable(
+    {
+      current_status_summary
+    }
+  )
  
  }

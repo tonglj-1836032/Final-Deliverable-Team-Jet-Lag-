@@ -29,19 +29,20 @@ x_input <- radioButtons(
   selected = "sex"
 )
 
-race_input <- selectInput(
-  inputId = "race",
-  label = h3("Select a race and ethnicity group"),
-  choices = race_list,
-  selected = "Black, Non-Hispanic"
+linx_type <- radioButtons(
+  inputId = "line_type",
+  label = h3("Choose a gener "),
+  choices = list("Male" = "Male",
+                 "Female" = "Female",
+                 "All" = "All"),
+  selected = "All"
 )
-
 page_two <- tabPanel(
   "Plot_race",
   titlePanel("Choose Your Interest"),
   sidebarLayout(
     sidebarPanel(
-      race_input,
+      uiOutput('race_list'),
       x_input,
     ),
     mainPanel(
@@ -67,44 +68,42 @@ page_two <- tabPanel(
   )
 )
 
-tt<-tabPanel("desc",
-
-      h1(textOutput("desc"))
-
-
-         )
 
 tt1<-tabPanel("line",sidebarLayout(
-  
   sidebarPanel(
     selectInput("pp",
                 "Mortality rates (%):",
                 c("All"=0,
                   ">0"=1
                 )
-                
-                
-    )
+    ),
+    linx_type ,
+    h3(textOutput("text"))
   ),
   
   mainPanel(
     {
-      
-      
       plotlyOutput("line")
-
     }
   )
-
+)
 )
 
-
-)
-tt2<-tabPanel("desc",
-             
-             h2(textOutput("text"))
-             
-             
+age_gender_tab <- tabPanel(
+  "Confirmed Cases by Age and Gender",
+  sidebarLayout(
+    sidebarPanel(
+      h3("Percentage of Confirmed Cases by Age Group and Gender"),
+      gender_input,
+      color_input,
+      h3("Graph Summary"),
+      textOutput("age_case_p1"),
+      textOutput("age_case_p2")
+    ),
+    mainPanel(
+      plotlyOutput("bar", height = 700)
+    )
+  )
 )
 
 # Introductory page.
@@ -113,26 +112,32 @@ intro_page <- tabPanel(
   
   titlePanel("Introduction"),
   
+  # Covid Image.
+  img(src = 'covid.png', height = '100px', width = '100px'),
+  # Multiculture Image.
+  img(src = 'multiculture.jpg', height = '100px', width = '100px'),
+  
   # Topic paragraphs.
-  p("Coronavirus is a hot topic this year, people around the world are 
+  p("Coronavirus is a hot topic this year. People around the world are 
   hugely affected by it. As international students, we are facing many 
   difficulties due to coronavirus. It affected our lives in so many ways. 
   And we believed that others have been through the same thing like us."
   ),
   
-  p("Thus, we decided to engage in this field and create a website that could help 
-    people in this complex situation. We hope that our design could help people 
-    gain insights and reduce their stress, informing the public of the effect of
-    COVID-19 on education, transportation, and work. We also want to go further 
-    by adding information about where you could get a covid test and which 
-    hospital you could go to for help."
-    ),
+  p("Thus, we decided to engage in this field and create a website that could 
+  help people understand this complex situation. We hope that our design could 
+  help people gain insights and realize how the pandemic is affecting different 
+  group of people in our society. We decided to explore different groups of 
+  people categorized by age, race and sex. We will explore 
+  Percentage of Confirmed Cases by Age Group, 
+  Hospital Acceptance Rate by Race, and
+  Death Rate for Every Age Group by Sex."
+  ),
   
   p(
     "The original data was downloaded from ",
     a("U.S. Government's open data. ",
-      href = "https://catalog.data.gov/dataset/
-      covid-19-case-surveillance-public-use-data"
+      href = "https://tinyurl.com/yxnf4wwe"
     ),
     "The dataframe's column names (cdc_report_dt, 
       Race and ethnicity (combined), hosp_yn, death_yn) 
@@ -146,7 +151,7 @@ intro_page <- tabPanel(
       the dataset better."
   ),
   
-  tableOutput('dataset'),
+  tableOutput(outputId = "dataset"),
 )
 
 # Summary takeaways page.
@@ -170,54 +175,42 @@ summary_page <- tabPanel(
   p("As for the age factors, most of COVID-19 cases are confirmed at the age 
     group between 20 - 29 Years, which takes up about 20% of the total confirmed 
     population. On the other hand, the age group 0 - 9 Years has the smallest 
-    percentage of confirmed cases that takes up only about 3%. Thus, we should 
-    rise the alter to be aware of the harsh situation and do everything possible 
-    to protect ourselves form getting infected, avoiding risky behaviors during 
-    this sensitive period of time."
+    percentage of confirmed cases that takes up only about 3%. Also, mortality 
+    rate tends to be higher as people get old. Thus, we should be aware of the 
+    harsh situation and do everything possible to protect ourselves form getting 
+    infected, avoiding risky behaviors during this sensitive period of time. We
+    could also use mortality rate data to esitmate priority age group for 
+    COVID-19 vaccination."
   ),
   
   p(
-    "The dataframe was grouped and summarized by current status.
+    "The dataframe below was grouped and summarized by current status.
     The table was included to show differences between laboratory 
-    confirmed/probable cases.
-    The table reveals number of laboratory confirmed/probable cases."
+    confirmed/probable cases. The table reveals up-to-date number of laboratory 
+    confirmed/probable cases. We wish upcoming vaccination slows down the
+    increase of numbers below that we can go back on campus and resume everday
+    life."
   ),
   
-  tableOutput('summary')
+  tableOutput(outputId = "summary")
 )
 
-
-
 ui <- fluidPage(
+  theme="style.css",
   tabsetPanel(
     intro_page,
     tabPanel(
-      "CO2 Emission Plot",
-      sidebarLayout(
-        sidebarPanel(
-          titlePanel("Climate Change Data"),
-          gender_input,
-          color_input,
-          h3("Graph Summary"),
-          textOutput("age_case_p1"),
-          textOutput("age_case_p2")
-        ),
-        mainPanel(
-          plotlyOutput("bar", height = 700)
-        )
-      )
+      "Confirmed Cases by Age",
+      age_gender_tab
     ),
     tabPanel(
-      "Team Jet Lag Final Deliverable on Covid",
+      "Hospital Acceptance Rate by Race",
       page_two
     ),
     tabPanel(
-      "death rate for every age group on Covid",
-      tt,
-	  tt1,
-	  tt2
-    
-  ),
-  summary_page
+      "Death Rate for Every Age Group by Gender",
+      tt1
+      ),
+    summary_page
   )
 )
