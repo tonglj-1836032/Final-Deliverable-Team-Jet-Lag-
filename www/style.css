@@ -1,22 +1,32 @@
-h1 {
-  font-weight: 500;
-  line-height: 1.1;
-  color: #FF31FF;
-  font-size: 24px;
-
-  text-align:justify;
+<style>
+.navbar-default {
+    background-color: #b1b1b3;
 }
 
-h2 {
-  font-weight: 500;
-  line-height: 1.1;
-  color: #FFF;
-  font-size: 18px;
+h3{
+       font-weight: bolder;
+       line-height: 1.1;
+       font-size: 24px;
+       font-family: 'Playfair Display', serif;
+       
+       text-align:justify;
 
-  text-align: justify;
-}
+    }
 
-body {
-  background-color: #CCC;
-  padding: 0;
-}
+    ul{
+      list-style-type:none;
+      margin: 0;
+      padding: 0;
+    }
+
+    body{
+      font-size: 16px;
+      font-family: 'Playfair Display', serif;
+
+      text-align:justify;
+    }
+
+    li{
+      margin: 5;
+    }
+</style>

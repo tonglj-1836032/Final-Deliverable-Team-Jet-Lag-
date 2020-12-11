@@ -77,7 +77,7 @@ page_two <- tabPanel(
 tt1<-tabPanel("line",sidebarLayout(
   sidebarPanel(
     selectInput("pp",
-                "Select a y-axis",
+                h3("Select a y-axis"),
                 choices =  list("Death Count"="death_sum_y",
                                 "Mortality Rate"="death_rate"),
                 selected = "death_rate"
